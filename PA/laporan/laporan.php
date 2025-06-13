@@ -45,6 +45,11 @@ if (isset($_GET['hapus'])) {
 $stmt = $pdo->prepare("SELECT * FROM laporan WHERE user_id = ? ORDER BY tanggal DESC");
 $stmt->execute([$user_id]);
 $laporan = $stmt->fetchAll();
+
+$totalSaldo = 0;
+foreach ($laporan as $lap) {
+  $totalSaldo += $lap['selisih'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -53,11 +58,20 @@ $laporan = $stmt->fetchAll();
   <meta charset="UTF-8">
   <title>Laporan Keuangan</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Poppins', sans-serif; }
+    .fade-in { animation: fadeIn 1s ease-in-out; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body class="min-h-screen bg-[#EFE7D9] flex flex-col items-center justify-center relative px-4 pb-24">
 
-  <div class="w-full max-w-2xl bg-white p-6 rounded-xl shadow border border-[#C5CBAF]">
-    <h1 class="text-2xl font-bold mb-6 text-center text-[#A0A58C]">Laporan Keuangan Bulanan</h1>
+  <div class="w-full max-w-2xl bg-white p-6 rounded-xl shadow border border-[#C5CBAF] fade-in">
+    <h1 class="text-2xl font-bold mb-6 text-center text-[#A0A58C]">📅 Laporan Keuangan Bulanan</h1>
 
     <?php if (isset($_GET['edit'])):
       $edit_id = $_GET['edit'];
@@ -86,6 +100,12 @@ $laporan = $stmt->fetchAll();
 
     <?php endif; ?>
 
+    <div class="mb-4 text-center">
+      <span class="inline-block bg-green-100 text-green-700 text-sm px-4 py-2 rounded-full shadow">
+        💰 Total Saldo: Rp <?= number_format($totalSaldo, 0, ',', '.') ?>
+      </span>
+    </div>
+
     <table class="w-full bg-white border rounded shadow text-sm">
       <thead class="bg-[#F8CDBE] text-[#444]">
         <tr>
@@ -102,7 +122,9 @@ $laporan = $stmt->fetchAll();
             <td class="p-3 border"><?= htmlspecialchars($row['tanggal']) ?></td>
             <td class="p-3 border text-green-600">Rp <?= number_format($row['pemasukan'], 0, ',', '.') ?></td>
             <td class="p-3 border text-red-600">Rp <?= number_format($row['pengeluaran'], 0, ',', '.') ?></td>
-            <td class="p-3 border font-semibold">Rp <?= number_format($row['selisih'], 0, ',', '.') ?></td>
+            <td class="p-3 border font-semibold <?= $row['selisih'] >= 0 ? 'text-green-700' : 'text-red-700' ?>">
+              <?= $row['selisih'] >= 0 ? '📈' : '📉' ?> Rp <?= number_format($row['selisih'], 0, ',', '.') ?>
+            </td>
             <td class="p-3 border text-center">
               <a href="?edit=<?= $row['id'] ?>" class="text-blue-600 hover:underline">Edit</a>
               <a href="?hapus=<?= $row['id'] ?>" class="text-red-600 hover:underline ml-2" onclick="return confirm('Hapus laporan ini?')">Hapus</a>
@@ -114,10 +136,10 @@ $laporan = $stmt->fetchAll();
   </div>
 
   <div class="fixed bottom-4 left-1/2 -translate-x-1/2 transform bg-white shadow-lg rounded-full px-6 py-2 flex gap-4 border border-[#C5CBAF]">
-    <a href="../sasaran/sasaran.php" class="bg-[#F8CDBE] text-white px-4 py-2 rounded-full hover:bg-[#F78E79] text-sm font-medium">Sasaran</a>
-    <a href="../dashboard/dashboard.php" class="bg-[#A0A58C] text-white px-4 py-2 rounded-full hover:bg-[#C5CBAF] text-sm font-medium">Dashboard</a>
-    <a href="../anggaran/anggaran.php" class="bg-[#A0A58C] text-white px-4 py-2 rounded-full hover:bg-[#C5CBAF] text-sm font-medium">Anggaran</a>
-    <a href="../transaksi/tambah_transaksi.php" class="bg-[#F28482] text-white px-4 py-2 rounded-full hover:bg-[#F78E79] text-sm font-medium">Transaksi</a>
+    <a href="../dashboard/dashboard.php" class="bg-[#A0A58C] text-white px-4 py-2 rounded-full hover:bg-[#789262] text-sm font-medium">🏠 Dashboard</a>
+    <a href="../sasaran/sasaran.php" class="bg-[#F8CDBE] text-white px-4 py-2 rounded-full hover:bg-[#F78E79] text-sm font-medium">🎯 Sasaran</a>
+    <a href="../anggaran/anggaran.php" class="bg-[#C5CBAF] text-white px-4 py-2 rounded-full hover:bg-[#A0A58C] text-sm font-medium">📋 Anggaran</a>
+    <a href="../transaksi/tambah_transaksi.php" class="bg-[#F28482] text-white px-4 py-2 rounded-full hover:bg-[#F78E79] text-sm font-medium">➕ Transaksi</a>
   </div>
 
 </body>
